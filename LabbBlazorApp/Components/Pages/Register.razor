@@ -1,0 +1,88 @@
+﻿@page "/register"
+@rendermode InteractiveServer
+
+<PageTitle>Register</PageTitle>
+
+<h1>Register</h1>
+
+@if (!submitted)
+{
+	<EditForm Model="@user" OnValidSubmit="Submit">
+		<div class="form-group">
+			<label>
+				Name:
+				<InputText class="form-control" @bind-Value="user.Name" placeholder="Anders Hejlsberg" />
+			</label>
+
+			<label>
+				Email
+				<InputText class="form-control" @bind-Value="user.Email" placeholder="xXandy.heylsburgXx@microsoft.online" />
+			</label>
+		</div>
+
+		<div class="form-group">
+			<label>
+				Street
+				<InputText @bind-Value="user.Addr.Street" class="form-control" placeholder="Danmarksgatan 98" />
+			</label>
+
+			<label>
+				City
+				<InputText @bind-Value="user.Addr.City" class="form-control" placeholder="Hamsterdamm" />
+			</label>
+
+
+			<label>
+				Zip code
+				<InputText @bind-Value="user.Addr.ZipCode" class="form-control" placeholder="12345" />
+			</label>
+		</div>
+
+		<div class="form-group">
+			<label>
+				Company name
+				<InputText @bind-Value="user.Comp.Name" class="form-control" placeholder="Aktiebolaget AB" />
+			</label>
+
+			<label>
+				Company slogan
+				<InputText @bind-Value="user.Comp.Slogan" class="form-control" placeholder="Vi gör saker" />
+			</label>
+		</div>
+
+		<br />
+
+		<div>
+			<button type="submit" class="btn btn-primary">Register yourself</button>
+		</div>
+	</EditForm>
+}
+else
+{
+	<p>You have submitted your information to us. We will handle it professionally and carefully.</p>
+
+	<p>
+		You are @user.Name (@user.Email). You live at @user.Addr.Street in @user.Addr.City (@user.Addr.ZipCode).
+		You represent @user.Comp.Name: @user.Comp.Slogan.
+	</p>
+}
+
+<p>
+	OBS! Här har vi ingen validering.
+	Tanken var att ha det, men det skulle tydligen kräva ett externt bibliotek som https://github.com/Blazored/FluentValidation
+	eftersom det inte finns inbyggt i DataAnnotationsValidator (ObjectGraphDataAnnotationsValidator verkar inte finnas).
+	Det p.g.a. kravet att representera User med 3 klasser som skapar en extra nivå ned med medlemmar.
+	Eftersom detta formulär ändå inte ska fungera så har jag valt att helt utelämna validering.
+</p>
+
+@code {
+	private bool submitted = false;
+
+	private User user = new User();
+
+	private void Submit()
+	{
+		submitted = true;
+		UserManager.users.Add(user);
+	}
+}

@@ -1,0 +1,57 @@
+﻿@page "/users"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+
+<PageTitle>Users</PageTitle>
+
+<h1>Users</h1>
+
+<p>A list of some registered users.</p>
+
+@if (users == null)
+{
+	<div class="spinner-border text-primary" role="status"></div>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Name</th>
+				<th>Email</th>
+				<th>Street</th>
+				<th>City</th>
+				<th>Zip code</th>
+				<th>Company name</th>
+				<th>Company slogan</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var user in users)
+			{
+				<tr>
+					<td>@user.Id</td>
+					<td>@user.Name</td>
+					<td>@user.Email</td>
+					<td>@user.Addr.Street</td>
+					<td>@user.Addr.City</td>
+					<td>@user.Addr.ZipCode</td>
+					<td>@user.Comp.Name</td>
+					<td>@user.Comp.Slogan</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code {
+	private List<User>? users;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await Task.Delay(1000);
+
+		users = UserManager.users;
+	}
+}
