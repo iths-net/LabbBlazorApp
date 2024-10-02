@@ -1,4 +1,6 @@
-﻿namespace LabbBlazorApp
+﻿using System.Linq;
+
+namespace LabbBlazorApp
 {
 	public class User
 	{
@@ -26,10 +28,11 @@
 
 		private static List<User> GenerateUsers() =>
 			[
-				new() {
-					Name = "name goes here",
-                    Email = "email goes here",
-                }
+				new() { Name = "joe", Email = "email goes here" },
+				new() { Name = "andy", Email = "email goes here" },
+				new() { Name = "willie", Email = "email goes here" },
+				new() { Name = "mary", Email = "email goes here" },
+				new() { Name = "bobby", Email = "email goes here" },
 			];
 	}
 }
