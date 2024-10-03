@@ -1,4 +1,5 @@
 ﻿@page "/users"
+@using static LabbBlazorApp.Components.OrderableTableHeader<User>
 @rendermode InteractiveServer
 @attribute [StreamRendering]
 
@@ -8,27 +9,35 @@
 
 <p>A list of some registered users.</p>
 
-@if (users == null)
+@if (showUsers == null)
 {
 	<div class="spinner-border text-primary" role="status"></div>
 }
 else
 {
-	<table class="table">
+	<table class="table table-hover">
 		<thead>
 			<tr>
-				<th>ID</th>
-				<th>Name</th>
-				<th>Email</th>
-				<th>Street</th>
-				<th>City</th>
-				<th>Zip code</th>
-				<th>Company name</th>
-				<th>Company slogan</th>
+				@foreach (var header in new (string, Func<User, IComparable>)[]
+				{
+					("ID", u => u.Id),
+					("Name", u => u.Name),
+					("Email", u => u.Email),
+					("Street", u => u.Addr.Street),
+					("City", u => u.Addr.City),
+					("Zip code", u => u.Addr.ZipCode),
+					("Company name", u => u.Comp.Name),
+					("Company slogan", u => u.Comp.Slogan),
+				})
+				{
+					<th>
+						<OrderableTableHeader T=User KeySelector="@(header.Item2)" OnSort=@Sorted>@header.Item1</OrderableTableHeader>
+					</th>
+				}
 			</tr>
 		</thead>
 		<tbody>
-			@foreach (var user in users)
+			@foreach (var user in showUsers)
 			{
 				<tr>
 					<td>@user.Id</td>
@@ -41,17 +50,51 @@ else
 					<td>@user.Comp.Slogan</td>
 				</tr>
 			}
+			@if (showUsers.Count() < allUsers.GetUsers().Count())
+			{
+				<tr>
+					<td>
+						<button class="btn btn-sm btn-secondary" @onclick="ShowMore">Show more</button>
+					</td>
+					<td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td>
+				</tr>
+			}
 		</tbody>
 	</table>
 }
 
 @code {
-	private List<User>? users;
+	private static IUserCollection allUsers = new UserGenerator();
+
+	private IEnumerable<User>? showUsers;
+	private int showMax = 5;
+
+	private Sorting sorting = new(u => u.Name, true);
 
 	protected override async Task OnInitializedAsync()
 	{
-		await Task.Delay(1000);
+		await Task.Delay(100);
+		UpdateUsers();
+	}
 
-		users = UserManager.users;
+	private void UpdateUsers()
+	{
+		showUsers =
+			(sorting.asc ?
+				allUsers.GetUsers().OrderBy(sorting.keySelector) :
+				allUsers.GetUsers().OrderByDescending(sorting.keySelector))
+			.Take(showMax);
+	}
+
+	private void ShowMore()
+	{
+		showMax *= 2;
+		UpdateUsers();
+	}
+
+	private void Sorted(Sorting sorting)
+	{
+		this.sorting = sorting;
+		UpdateUsers();
 	}
 }

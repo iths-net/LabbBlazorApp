@@ -78,11 +78,10 @@ else
 @code {
 	private bool submitted = false;
 
-	private User user = new User();
+	private User user = new();
 
 	private void Submit()
 	{
 		submitted = true;
-		UserManager.users.Add(user);
 	}
 }
