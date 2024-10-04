@@ -1,23 +1,23 @@
-﻿
+﻿using System.Net;
+
 namespace LabbBlazorApp
 {
-	public class UserGenerator : IUserCollection
+	public class UserGenerator : IUserDAL
 	{
-		public List<User> users;
+		private List<User>? users;
 
-		public UserGenerator()
+		public IEnumerable<User> GetUsers() => users!;
+
+		public bool IsLoaded() => users != null;
+
+		public async void Load()
 		{
-			users = [
-				new() { Name = "joe", Email = "a" },
-				new() { Name = "andy", Email = "b" },
-				new() { Name = "willie", Email = "c" },
-				new() { Name = "mary", Email = "d" },
-				new() { Name = "bobby", Email = "e" },
-
-				new() { Name = "E.T.", Email = "f" },
-			];
+			using (var hc = new HttpClient())
+			{
+				var res = await hc.GetAsync("https://jsonplaceholder.typicode.com/users");
+				res.EnsureSuccessStatusCode();
+				users = (await res.Content.ReadFromJsonAsync<List<User>>())!;
+			}
 		}
-
-		public IEnumerable<User> GetUsers() => users;
 	}
 }

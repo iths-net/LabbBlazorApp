@@ -23,30 +23,30 @@
 		<div class="form-group">
 			<label>
 				Street
-				<InputText @bind-Value="user.Addr.Street" class="form-control" placeholder="Danmarksgatan 98" />
+				<InputText @bind-Value="user.Address.Street" class="form-control" placeholder="Danmarksgatan 98" />
 			</label>
 
 			<label>
 				City
-				<InputText @bind-Value="user.Addr.City" class="form-control" placeholder="Hamsterdamm" />
+				<InputText @bind-Value="user.Address.City" class="form-control" placeholder="Hamsterdamm" />
 			</label>
 
 
 			<label>
 				Zip code
-				<InputText @bind-Value="user.Addr.ZipCode" class="form-control" placeholder="12345" />
+				<InputText @bind-Value="user.Address.ZipCode" class="form-control" placeholder="12345" />
 			</label>
 		</div>
 
 		<div class="form-group">
 			<label>
 				Company name
-				<InputText @bind-Value="user.Comp.Name" class="form-control" placeholder="Aktiebolaget AB" />
+				<InputText @bind-Value="user.Company.Name" class="form-control" placeholder="Aktiebolaget AB" />
 			</label>
 
 			<label>
 				Company slogan
-				<InputText @bind-Value="user.Comp.Slogan" class="form-control" placeholder="Vi gör saker" />
+				<InputText @bind-Value="user.Company.CatchPhrase" class="form-control" placeholder="Vi gör saker" />
 			</label>
 		</div>
 
@@ -62,8 +62,8 @@ else
 	<p>You have submitted your information to us. We will handle it professionally and carefully.</p>
 
 	<p>
-		You are @user.Name (@user.Email). You live at @user.Addr.Street in @user.Addr.City (@user.Addr.ZipCode).
-		You represent @user.Comp.Name: @user.Comp.Slogan.
+		You are @user.Name (@user.Email). You live at @user.Address.Street in @user.Address.City (@user.Address.ZipCode).
+		You represent @user.Company.Name: @user.Company.CatchPhrase.
 	</p>
 }
 
@@ -78,7 +78,7 @@ else
 @code {
 	private bool submitted = false;
 
-	private User user = new();
+	private User user = new() { Name = "", Email = "" };
 
 	private void Submit()
 	{

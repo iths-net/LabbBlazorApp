@@ -3,6 +3,6 @@
 	public class Company
 	{
 		public string Name { get; set; }
-		public string Slogan { get; set; }
+		public string CatchPhrase { get; set; }
 	}
 }

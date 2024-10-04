@@ -1,4 +1,5 @@
 ﻿@page "/users"
+@using System.Text.RegularExpressions
 @using static LabbBlazorApp.Components.OrderableTableHeader<User>
 @rendermode InteractiveServer
 @attribute [StreamRendering]
@@ -15,6 +16,10 @@
 }
 else
 {
+	<h3>@allUsers.GetUsers()?.Count() users</h3>
+
+	<input @bind="searchQuery" @oninput="UpdateUsers" class="form-control" placeholder="Search for users" />
+
 	<table class="table table-hover">
 		<thead>
 			<tr>
@@ -23,11 +28,11 @@ else
 					("ID", u => u.Id),
 					("Name", u => u.Name),
 					("Email", u => u.Email),
-					("Street", u => u.Addr.Street),
-					("City", u => u.Addr.City),
-					("Zip code", u => u.Addr.ZipCode),
-					("Company name", u => u.Comp.Name),
-					("Company slogan", u => u.Comp.Slogan),
+					("Street", u => u.Address.Street),
+					("City", u => u.Address.City),
+					("Zip code", u => u.Address.ZipCode),
+					("Company name", u => u.Company.Name),
+					("Company catch phrase", u => u.Company.CatchPhrase),
 				})
 				{
 					<th>
@@ -43,14 +48,14 @@ else
 					<td>@user.Id</td>
 					<td>@user.Name</td>
 					<td>@user.Email</td>
-					<td>@user.Addr.Street</td>
-					<td>@user.Addr.City</td>
-					<td>@user.Addr.ZipCode</td>
-					<td>@user.Comp.Name</td>
-					<td>@user.Comp.Slogan</td>
+					<td>@user.Address.Street</td>
+					<td>@user.Address.City</td>
+					<td>@user.Address.ZipCode</td>
+					<td>@user.Company.Name</td>
+					<td>@user.Company.CatchPhrase</td>
 				</tr>
 			}
-			@if (showUsers.Count() < allUsers.GetUsers().Count())
+			@if (showUsers.Count() < showableUsers)
 			{
 				<tr>
 					<td>
@@ -64,26 +69,48 @@ else
 }
 
 @code {
-	private static IUserCollection allUsers = new UserGenerator();
+	private static IUserDAL allUsers = new UserGenerator();
 
 	private IEnumerable<User>? showUsers;
+	private int showableUsers;
 	private int showMax = 5;
 
+	private string searchQuery = "";
 	private Sorting sorting = new(u => u.Name, true);
 
 	protected override async Task OnInitializedAsync()
 	{
+		allUsers.Load();
+
 		await Task.Delay(100);
 		UpdateUsers();
 	}
 
 	private void UpdateUsers()
 	{
-		showUsers =
+		var searchKeywords = Regex.Split(searchQuery.ToLower(), "[ _.-]+").Where(s => s != "");
+		var noSearch = searchKeywords.Count() == 0;
+
+		var unlimitedUsers =
 			(sorting.asc ?
 				allUsers.GetUsers().OrderBy(sorting.keySelector) :
 				allUsers.GetUsers().OrderByDescending(sorting.keySelector))
-			.Take(showMax);
+		.Where(u => noSearch ||
+			new[] {
+				u.Id.ToString(),
+				u.Name,
+				u.Email,
+				u.Address.Street,
+				u.Address.City,
+				u.Address.ZipCode,
+				u.Company.Name,
+				u.Company.CatchPhrase
+			}
+				.SelectMany(s => s.ToLower().Split(' '))
+				.Any(s1 => searchKeywords.Any(s2 => s1.Contains(s2))));
+		showableUsers = unlimitedUsers.Count();
+		showUsers = unlimitedUsers.Take(showMax);
+		StateHasChanged();
 	}
 
 	private void ShowMore()
