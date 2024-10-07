@@ -13,7 +13,7 @@
 </button>
 
 @code {
-	public record Sorting(Func<T, IComparable> keySelector, bool asc);
+	public record Sorting(Func<T, IComparable> KeySelector, bool Asc);
 
 	[Parameter]
 	public required RenderFragment ChildContent { get; set; }

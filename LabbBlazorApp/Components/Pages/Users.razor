@@ -23,20 +23,10 @@ else
 	<table class="table table-hover">
 		<thead>
 			<tr>
-				@foreach (var header in new (string, Func<User, IComparable>)[]
-				{
-					("ID", u => u.Id),
-					("Name", u => u.Name),
-					("Email", u => u.Email),
-					("Street", u => u.Address.Street),
-					("City", u => u.Address.City),
-					("Zip code", u => u.Address.ZipCode),
-					("Company name", u => u.Company.Name),
-					("Company catch phrase", u => u.Company.CatchPhrase),
-				})
+				@foreach (var (header, keySelector) in columns)
 				{
 					<th>
-						<OrderableTableHeader T=User KeySelector="@(header.Item2)" OnSort=@Sorted>@header.Item1</OrderableTableHeader>
+						<OrderableTableHeader T=User KeySelector="@keySelector" OnSort=@Sorted>@header</OrderableTableHeader>
 					</th>
 				}
 			</tr>
@@ -45,14 +35,10 @@ else
 			@foreach (var user in showUsers)
 			{
 				<tr>
-					<td>@user.Id</td>
-					<td>@user.Name</td>
-					<td>@user.Email</td>
-					<td>@user.Address.Street</td>
-					<td>@user.Address.City</td>
-					<td>@user.Address.ZipCode</td>
-					<td>@user.Company.Name</td>
-					<td>@user.Company.CatchPhrase</td>
+					@foreach (var (_, keySelector) in columns)
+					{
+						<td>@keySelector(user)</td>
+					}
 				</tr>
 			}
 			@if (showUsers.Count() < showableUsers)
@@ -69,6 +55,19 @@ else
 }
 
 @code {
+	private record Column(string Header, Func<User, IComparable> KeySelector);
+
+	private Column[] columns = [
+		new("ID", u => u.Id),
+		new("Name", u => u.Name),
+		new("Email", u => u.Email),
+		new("Street", u => u.Address.Street),
+		new("City", u => u.Address.City),
+		new("Zip code", u => u.Address.ZipCode),
+		new("Company name", u => u.Company.Name),
+		new("Company catch phrase", u => u.Company.CatchPhrase),
+	];
+
 	private static IUserDAL allUsers = new UserGenerator();
 
 	private IEnumerable<User>? showUsers;
@@ -89,29 +88,27 @@ else
 	private void UpdateUsers()
 	{
 		var searchKeywords = Regex.Split(searchQuery.ToLower(), "[ _.-]+").Where(s => s != "");
-		var noSearch = searchKeywords.Count() == 0;
+		var doSearch = searchKeywords.Count() != 0;
 
-		var unlimitedUsers =
-			(sorting.asc ?
-				allUsers.GetUsers().OrderBy(sorting.keySelector) :
-				allUsers.GetUsers().OrderByDescending(sorting.keySelector))
-		.Where(u => noSearch ||
-			new[] {
-				u.Id.ToString(),
-				u.Name,
-				u.Email,
-				u.Address.Street,
-				u.Address.City,
-				u.Address.ZipCode,
-				u.Company.Name,
-				u.Company.CatchPhrase
-			}
-				.SelectMany(s => s.ToLower().Split(' '))
-				.Any(s1 => searchKeywords.Any(s2 => s1.Contains(s2))));
+		IEnumerable<User> unlimitedUsers =
+			(sorting.Asc ?
+				allUsers.GetUsers().OrderBy(sorting.KeySelector) :
+				allUsers.GetUsers().OrderByDescending(sorting.KeySelector));
+
+		if (doSearch)
+			unlimitedUsers = unlimitedUsers
+				.Where(u =>
+					UserKeywords(u, columns)
+					.Any(s1 => searchKeywords.Any(s2 => s1.Contains(s2)))
+				);
+
 		showableUsers = unlimitedUsers.Count();
 		showUsers = unlimitedUsers.Take(showMax);
 		StateHasChanged();
 	}
+
+	private static IEnumerable<string> UserKeywords(User user, IEnumerable<Column> cols) =>
+		cols.SelectMany(col => col.KeySelector(user).ToString()!.ToLower().Split(' '));
 
 	private void ShowMore()
 	{
