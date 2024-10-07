@@ -26,7 +26,7 @@ else
 				@foreach (var (header, keySelector) in columns)
 				{
 					<th>
-						<OrderableTableHeader T=User KeySelector="@keySelector" OnSort=@Sorted>@header</OrderableTableHeader>
+						<OrderableTableHeader T=User KeySelector="@keySelector" OnSort="@(s => { sorting = s; UpdateUsers(); })">@header</OrderableTableHeader>
 					</th>
 				}
 			</tr>
@@ -45,7 +45,7 @@ else
 			{
 				<tr>
 					<td>
-						<button class="btn btn-sm btn-secondary" @onclick="ShowMore">Show more</button>
+						<button class="btn btn-sm btn-secondary" @onclick="@(() => { showMax *= 2; UpdateUsers(); })">Show more</button>
 					</td>
 					<td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td>
 				</tr>
@@ -109,16 +109,4 @@ else
 
 	private static IEnumerable<string> UserKeywords(User user, IEnumerable<Column> cols) =>
 		cols.SelectMany(col => col.KeySelector(user).ToString()!.ToLower().Split(' '));
-
-	private void ShowMore()
-	{
-		showMax *= 2;
-		UpdateUsers();
-	}
-
-	private void Sorted(Sorting sorting)
-	{
-		this.sorting = sorting;
-		UpdateUsers();
-	}
 }
