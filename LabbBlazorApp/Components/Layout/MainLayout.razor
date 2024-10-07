@@ -1,5 +1,21 @@
 ﻿@inherits LayoutComponentBase
 
+<img id="beaver" style="transition-duration: 1s; transition-timing-function: ease-in-out; border-radius: 500%; pointer-events: none; z-index: 1; position: absolute; width: 100px; height: 100px; top: 100vh; left: 100vw;" src="https://media1.tenor.com/m/z3sxfsXpHtUAAAAd/beaver-carrot.gif" />
+
+<script>
+    let beaver = document.querySelector("#beaver")
+    document.onmousemove = e => {
+		beaver.style.left = (e.clientX - 50 + Math.random() * 10) + "px";
+		beaver.style.top = (e.clientY - 50 + Math.random() * 10) + "px";
+	};
+    document.onmousedown = e => {
+        beaver.style.scale = "5";
+        setTimeout(() => {
+			beaver.style.scale = null;
+        }, 500);
+    };
+</script>
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
