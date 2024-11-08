@@ -2,41 +2,41 @@ using LabbBlazorApp;
 
 namespace LabbBlazorAppTest
 {
-	public class DummyDAL : IUserDAL
+	public class DummyDal : IUserDal
 	{
-		private User[]? dummyUsers;
+		private IEnumerable<User>? _dummyUsers;
 
 		public IEnumerable<User> GetUsers() =>
-			dummyUsers!;
+			_dummyUsers!;
 
-		public bool IsLoaded() => dummyUsers != null;
+		public bool IsLoaded() => _dummyUsers != null;
 
 		public void Load() =>
-			dummyUsers = [
-				new() { Name = "joe", Email = "joe@gmail.com", Address = new() { Street = "Somewhere" } },
-				new() { Name = "andy", Email = "andy@gmail.com" },
-				new() { Name = "willie", Email = "willie@gmail.com" },
-				new() { Name = "mary", Email = "mary@gmail.com" },
-				new() { Name = "bobby", Email = "bobby@gmail.com" },
-			];
+			_dummyUsers = new [] { "joe", "andy", "willie", "nancy", "bobby" }.Select(name => new User
+			{
+				Name = name,
+				Email = $"{name}@gmail.com",
+				Address = new Address { City = "Cool city", Street = "Cool street 82", ZipCode = "Cool zip code" },
+				Company = new Company { Name = "Cool company", CatchPhrase = "Cool catchphrase" }
+			});
 	}
 
 	[TestClass]
 	public class DummyDalTest
 	{
 		[TestMethod]
-		public void NotLoaded() => Assert.IsFalse(new DummyDAL().IsLoaded());
+		public void NotLoaded() => Assert.IsFalse(new DummyDal().IsLoaded());
 
 		[TestMethod]
 		public void Load()
 		{
-			var dal = new DummyDAL();
+			var dal = new DummyDal();
 
 			Assert.IsNull(dal.GetUsers());
 
 			dal.Load();
 
-			var users = dal.GetUsers();
+			var users = dal.GetUsers().ToArray();
 
 			Assert.IsNotNull(users);
 

@@ -2,7 +2,7 @@
 {
 	public class Company
 	{
-		public string Name { get; set; }
-		public string CatchPhrase { get; set; }
+		public required string Name { get; set; }
+		public required string CatchPhrase { get; set; }
 	}
 }

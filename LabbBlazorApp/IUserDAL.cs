@@ -1,6 +1,6 @@
 ﻿namespace LabbBlazorApp
 {
-	public interface IUserDAL
+	public interface IUserDal
 	{
 		IEnumerable<User> GetUsers();
 

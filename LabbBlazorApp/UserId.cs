@@ -12,6 +12,6 @@
 		public override string ToString() => Uid;
 
 		public int CompareTo(object? obj)
-			=> ToString().CompareTo(obj?.ToString());
+			=> String.Compare(ToString(), obj?.ToString(), StringComparison.Ordinal);
 	}
 }

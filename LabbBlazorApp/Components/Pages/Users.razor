@@ -10,44 +10,47 @@
 
 <p>A list of some registered users.</p>
 
-@if (showUsers == null)
+@if (_showUsers == null)
 {
 	<div class="spinner-border text-primary" role="status"></div>
 }
 else
 {
-	<h3>@allUsers.GetUsers()?.Count() users</h3>
+	<h3>@AllUsers.GetUsers().Count() users</h3>
 
-	<input @bind="searchQuery" @oninput="UpdateUsers" class="form-control" placeholder="Search for users" />
+	<input @bind="_searchQuery" @oninput="UpdateUsers" class="form-control" placeholder="Search for users" />
 
 	<table class="table table-hover">
 		<thead>
 			<tr>
-				@foreach (var (header, keySelector) in columns)
+				@foreach (var (header, keySelector) in _columns)
 				{
 					<th>
-						<OrderableTableHeader T=User KeySelector="@keySelector" OnSort="@(s => { sorting = s; UpdateUsers(); })">@header</OrderableTableHeader>
+						<OrderableTableHeader T=User KeySelector="@keySelector" OnSort="@(s => { _sorting = s; UpdateUsers(); })">@header</OrderableTableHeader>
 					</th>
 				}
 			</tr>
 		</thead>
 		<tbody>
-			@foreach (var user in showUsers)
+			@foreach (var user in _showUsers)
 			{
 				<tr>
-					@foreach (var (_, keySelector) in columns)
+					@foreach (var (_, keySelector) in _columns)
 					{
 						<td>@keySelector(user)</td>
 					}
 				</tr>
 			}
-			@if (showUsers.Count() < showableUsers)
+			@if (_showUsers.Count() < _showableUsers)
 			{
 				<tr>
 					<td>
-						<button class="btn btn-sm btn-secondary" @onclick="@(() => { showMax *= 2; UpdateUsers(); })">Show more</button>
+						<button class="btn btn-sm btn-secondary" @onclick="@(() => { _showMax *= 2; UpdateUsers(); })">Show more</button>
 					</td>
-					<td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td>
+					@for (var i = 1; i < _columns.Length; i++)
+					{
+						<td></td>
+					}
 				</tr>
 			}
 		</tbody>
@@ -57,7 +60,7 @@ else
 @code {
 	private record Column(string Header, Func<User, IComparable> KeySelector);
 
-	private Column[] columns = [
+	private readonly Column[] _columns = [
 		new("ID", u => u.Id),
 		new("Name", u => u.Name),
 		new("Email", u => u.Email),
@@ -68,18 +71,18 @@ else
 		new("Company catch phrase", u => u.Company.CatchPhrase),
 	];
 
-	private static IUserDAL allUsers = new UserGenerator();
+	private static readonly IUserDal AllUsers = new UserGenerator();
 
-	private IEnumerable<User>? showUsers;
-	private int showableUsers;
-	private int showMax = 5;
+	private IEnumerable<User>? _showUsers;
+	private int _showableUsers;
+	private int _showMax = 5;
 
-	private string searchQuery = "";
-	private Sorting sorting = new(u => u.Name, true);
+	private string _searchQuery = "";
+	private Sorting _sorting = new(u => u.Name, true);
 
 	protected override async Task OnInitializedAsync()
 	{
-		allUsers.Load();
+		AllUsers.Load();
 
 		await Task.Delay(1000);
 		UpdateUsers();
@@ -87,23 +90,23 @@ else
 
 	private void UpdateUsers()
 	{
-		var searchKeywords = Regex.Split(searchQuery.ToLower(), "[ _.-]+").Where(s => s != "");
-		var doSearch = searchKeywords.Count() != 0;
+		var searchKeywords = Regex.Split(_searchQuery.ToLower(), "[ _.-]+").Where(s => s != "").ToArray();
+		var doSearch = searchKeywords.Length != 0;
 
-		IEnumerable<User> unlimitedUsers =
-			(sorting.Asc ?
-				allUsers.GetUsers().OrderBy(sorting.KeySelector) :
-				allUsers.GetUsers().OrderByDescending(sorting.KeySelector));
+		var unlimitedUsers =
+			(_sorting.Asc ?
+				AllUsers.GetUsers().OrderBy(_sorting.KeySelector) :
+				AllUsers.GetUsers().OrderByDescending(_sorting.KeySelector)).ToArray();
 
 		if (doSearch)
 			unlimitedUsers = unlimitedUsers
 				.Where(u =>
-					UserKeywords(u, columns)
-					.Any(s1 => searchKeywords.Any(s2 => s1.Contains(s2)))
-				);
+					UserKeywords(u, _columns)
+					.Any(s1 => searchKeywords.Any(s1.Contains))
+				).ToArray();
 
-		showableUsers = unlimitedUsers.Count();
-		showUsers = unlimitedUsers.Take(showMax);
+		_showableUsers = unlimitedUsers.Count();
+		_showUsers = unlimitedUsers.Take(_showMax);
 		StateHasChanged();
 	}
 
